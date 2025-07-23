@@ -1,4 +1,4 @@
-// backend/app.js (Final and Correct Version)
+// backend/app.js (Final and Definitive Version)
 
 const express = require("express");
 const cors = require("cors");
@@ -21,19 +21,24 @@ const clientURL = process.env.CLIENT_URL;
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // 2. Check if the incoming request origin matches your CLIENT_URL.
-    // THIS IS THE BULLETPROOF LOGIC:
-    // It is "truthy" (not undefined), and after removing the final character of both strings
-    // (if that character is a slash), the results are identical.
+    // --- This is for debugging to show you EXACTLY what is being compared ---
+    console.log("================ CORS CHECK ================");
+    console.log("Request Origin from Browser:", origin);
+    console.log("Allowed CLIENT_URL from Render:", clientURL);
+    console.log("==========================================");
+
+    // 2. The Bulletproof Logic:
+    // Check if both the origin and your clientURL exist.
+    // Then, remove the final character of BOTH strings if it is a slash '/'.
+    // Finally, compare the cleaned strings.
     if (clientURL && origin && origin.replace(/\/$/, "") === clientURL.replace(/\/$/, "")) {
-      // If they match, allow the request.
+      // If they match perfectly after cleaning, allow the request.
       callback(null, true);
     } else if (!origin) {
-      // Allow requests with no origin (like Postman or server-to-server)
+      // Allow requests that don't have an origin (e.g., Postman, server-to-server calls)
       callback(null, true);
     } else {
-      // If they do not match, block the request.
-      console.error(`CORS Mismatch: Request Origin '${origin}' does not match Allowed CLIENT_URL '${clientURL}'.`);
+      // If they do not match, block the request and log the failure.
       callback(new Error("This origin is not allowed by CORS policy."));
     }
   },
@@ -48,16 +53,17 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan("dev"));
 
+// Your existing API routes
 app.use("/api", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/pets", petProfileRoutes);
 
+// Health check and root routes
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
-
 app.get("/", (_req, res) => {
   res.json({
     status: "ok",
-    message: "PetConnect SaaS Backend is running.",
+    message: "PetConnect SaaS Backend is running successfully.",
   });
 });
 
